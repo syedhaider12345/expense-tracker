@@ -1,0 +1,13 @@
+fastapi==0.103.2
+uvicorn[standard]
+pydantic>=2.0.0
+pydantic[email]
+python-jose
+passlib[bcrypt]
+python-multipart
+sqlalchemy
+psycopg2-binary
+python-dotenv
+email-validator
+requests
+groq
