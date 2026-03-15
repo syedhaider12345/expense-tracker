@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin — Expense Tracker</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:14px;}
+
+    /* Login */
+    #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1a1a2e;}
+    .login-card{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+    .login-logo{text-align:center;margin-bottom:1.75rem;}
+    .login-logo h1{font-size:20px;font-weight:700;color:#1a1a1a;}
+    .login-logo h1 span{color:#5b6af0;}
+    .login-logo p{font-size:12px;color:#e24b4a;background:#fee2e2;padding:4px 10px;border-radius:20px;display:inline-block;margin-top:6px;font-weight:500;}
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+    .form-group label{font-size:12px;font-weight:500;color:#555;}
+    .form-group input{padding:10px 14px;border:1px solid #e0e0d8;border-radius:9px;font-size:14px;outline:none;}
+    .form-group input:focus{border-color:#5b6af0;}
+    .btn-login{width:100%;padding:11px;background:#1a1a2e;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;}
+    .btn-login:hover{background:#2d2d4a;}
+    .error-msg{background:#fee2e2;color:#c0392b;padding:10px 14px;border-radius:8px;font-size:13px;display:none;margin-bottom:12px;}
+    .error-msg.show{display:block;}
+
+    /* App */
+    #app-screen{display:none;}
+    header{background:#1a1a2e;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;}
+    .logo{font-size:15px;font-weight:600;color:#fff;}
+    .logo span{color:#5b6af0;}
+    .admin-badge{background:#e24b4a;color:#fff;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;margin-left:8px;}
+    .btn-logout{padding:6px 14px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;}
+
+    main{max-width:1200px;margin:0 auto;padding:1.75rem 1.5rem;}
+
+    /* Tabs */
+    .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:#fff;border-radius:12px;padding:6px;border:1px solid #e5e5e0;width:fit-content;}
+    .tab{padding:7px 18px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:13px;color:#666;}
+    .tab.active{background:#1a1a2e;color:#fff;font-weight:500;}
+
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* Stats cards */
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.5rem;}
+    .card{background:#fff;border-radius:12px;border:1px solid #e5e5e0;padding:1.2rem 1.4rem;}
+    .card .label{font-size:12px;color:#888;margin-bottom:6px;}
+    .card .value{font-size:22px;font-weight:600;}
+    .card.accent{background:#1a1a2e;color:#fff;border-color:#1a1a2e;}
+    .card.accent .label{color:rgba(255,255,255,0.6);}
+
+    /* Table */
+    .table-wrap{background:#fff;border-radius:12px;border:1px solid #e5e5e0;overflow:hidden;}
+    .table-header{padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e5e0;}
+    .table-title{font-size:14px;font-weight:600;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;background:#fafaf8;}
+    td{padding:11px 14px;border-top:1px solid #f0f0e8;font-size:13px;}
+    tr:hover td{background:#fafaf8;}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+    .empty{text-align:center;padding:3rem;color:#aaa;font-size:13px;}
+
+    /* Message panel */
+    .msg-panel{background:#fff;border-radius:12px;border:1px solid #e5e5e0;padding:1.5rem;margin-bottom:1.5rem;}
+    .msg-panel h3{font-size:14px;font-weight:600;margin-bottom:1rem;}
+    .msg-form{display:grid;gap:14px;}
+    .msg-form select,.msg-form input,.msg-form textarea{padding:10px 14px;border:1px solid #e0e0d8;border-radius:9px;font-size:14px;outline:none;width:100%;}
+    .msg-form select:focus,.msg-form input:focus,.msg-form textarea:focus{border-color:#5b6af0;}
+    .msg-form textarea{min-height:120px;resize:vertical;font-family:inherit;}
+    .btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;}
+    .btn-primary{background:#5b6af0;color:#fff;}
+    .btn-primary:hover{background:#4a57d8;}
+    .btn-danger{background:#fee2e2;color:#c0392b;}
+    .btn-danger:hover{background:#fecaca;}
+    .btn-sm{padding:5px 12px;font-size:12px;}
+    .btn-dark{background:#1a1a2e;color:#fff;}
+    .btn-dark:hover{background:#2d2d4a;}
+
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a1a;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+    .toast.show{opacity:1;}
+
+    .search-bar{padding:8px 12px;border:1px solid #e0e0d8;border-radius:8px;font-size:13px;outline:none;width:220px;}
+    .search-bar:focus{border-color:#5b6af0;}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>Expense<span>Tracker</span></h1>
+      <p>🔐 Admin Panel</p>
+    </div>
+    <div id="login-error" class="error-msg"></div>
+    <div class="form-group"><label>Admin Email</label><input type="email" id="admin-email" placeholder="admin@example.com"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="admin-password" placeholder="Admin password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Sign In to Admin</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <header>
+    <div class="logo">Expense<span>Tracker</span><span class="admin-badge">ADMIN</span></div>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('overview')">Overview</button>
+      <button class="tab" onclick="showTab('users')">Users</button>
+      <button class="tab" onclick="showTab('activity')">Recent Activity</button>
+      <button class="tab" onclick="showTab('messages')">Send Message</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview" class="page active">
+      <div class="cards">
+        <div class="card accent"><div class="label">Total users</div><div class="value" id="stat-users">—</div></div>
+        <div class="card"><div class="label">Total expenses</div><div class="value" id="stat-expenses">—</div></div>
+        <div class="card"><div class="label">Total amount</div><div class="value" id="stat-amount">—</div></div>
+        <div class="card"><div class="label">This month expenses</div><div class="value" id="stat-month-exp">—</div></div>
+        <div class="card"><div class="label">This month amount</div><div class="value" id="stat-month-amt">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">All users summary</div></div>
+        <div id="overview-users-body"></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="tab-users" class="page">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Registered users</div>
+          <input class="search-bar" type="text" id="user-search" placeholder="Search by name or email..." oninput="filterUsers()"/>
+        </div>
+        <div id="users-table-body"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div id="tab-activity" class="page">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Recent expenses (all users)</div>
+          <button class="btn btn-dark btn-sm" onclick="loadActivity()">Refresh</button>
+        </div>
+        <div id="activity-table-body"></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="tab-messages" class="page">
+      <div class="msg-panel">
+        <h3>✉️ Send message to users</h3>
+        <div class="msg-form">
+          <div>
+            <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:5px;">Send to</label>
+            <select id="msg-target">
+              <option value="all">📢 All users</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:5px;">Subject</label>
+            <input type="text" id="msg-subject" placeholder="e.g. Monthly budget reminder"/>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:5px;">Message</label>
+            <textarea id="msg-body" placeholder="Write your message here...&#10;&#10;It will be delivered to the user's registered email address."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" onclick="sendMessage()">Send Email</button>
+            <span id="msg-preview" style="font-size:12px;color:#888;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message templates -->
+      <div class="msg-panel">
+        <h3>Quick templates</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-sm" style="background:#f0f0f8;color:#5b6af0;" onclick="useTemplate('budget')">Budget reminder</button>
+          <button class="btn btn-sm" style="background:#f0f0f8;color:#5b6af0;" onclick="useTemplate('monthly')">Monthly summary prompt</button>
+          <button class="btn btn-sm" style="background:#f0f0f8;color:#5b6af0;" onclick="useTemplate('tip')">Saving tip</button>
+          <button class="btn btn-sm" style="background:#f0f0f8;color:#5b6af0;" onclick="useTemplate('welcome')">Welcome message</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let adminToken = localStorage.getItem('adminToken');
+let allUsers = [];
+
+const TEMPLATES = {
+  budget: {
+    subject: "Reminder: Check your budget this month",
+    body: "Hi there,\n\nThis is a friendly reminder to check your monthly budgets on your Expense Tracker dashboard.\n\nStaying on top of your budget helps you save more and spend wisely.\n\nLog in now to review your spending: " + location.origin
+  },
+  monthly: {
+    subject: "Your monthly expense report is ready",
+    body: "Hi there,\n\nA new month has begun! This is a great time to review last month's expenses and set new budgets.\n\nClick 'Email Report' on your dashboard to receive a detailed summary of your spending.\n\nVisit your dashboard: " + location.origin
+  },
+  tip: {
+    subject: "💡 A saving tip for you",
+    body: "Hi there,\n\nHere's a quick saving tip: Try the 50/30/20 rule!\n\n• 50% of your income → needs (rent, food, utilities)\n• 30% → wants (entertainment, shopping)\n• 20% → savings and investments\n\nTrack your progress on your Expense Tracker dashboard: " + location.origin
+  },
+  welcome: {
+    subject: "Welcome to Expense Tracker!",
+    body: "Hi there,\n\nWelcome to Expense Tracker! We're glad to have you.\n\nHere's how to get started:\n1. Add your first expense using the '+ Add' tab\n2. Set monthly budgets in the 'Budgets' tab\n3. Click 'AI Insights' for personalized spending analysis\n4. Use 'Email Report' to get a monthly summary\n\nVisit your dashboard: " + location.origin
+  }
+};
+
+window.onload = () => adminToken ? showApp() : null;
+
+function showApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  loadOverview();
+}
+
+async function doLogin(){
+  const email = document.getElementById('admin-email').value.trim();
+  const pass = document.getElementById('admin-password').value;
+  const btn = document.getElementById('btn-login');
+  const err = document.getElementById('login-error');
+  err.classList.remove('show');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try{
+    const r = await fetch('/auth/admin-login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail || 'Login failed');
+    adminToken = d.access_token;
+    localStorage.setItem('adminToken', adminToken);
+    showApp();
+  }catch(e){
+    err.textContent = e.message;
+    err.classList.add('show');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Sign In to Admin';
+  }
+}
+
+function doLogout(){
+  adminToken = null;
+  localStorage.removeItem('adminToken');
+  location.reload();
+}
+
+async function adminApi(path, opts={}){
+  opts.headers = {...(opts.headers||{}), 'Authorization': 'Bearer ' + adminToken};
+  const r = await fetch(path, opts);
+  if(r.status === 401 || r.status === 403){
+    doLogout(); return;
+  }
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.detail || 'Request failed');
+  return d;
+}
+
+function showTab(name){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b => {
+    if(b.textContent.toLowerCase().includes(name === 'messages' ? 'send' : name)) b.classList.add('active');
+  });
+  if(name === 'overview') loadOverview();
+  if(name === 'users') loadUsers();
+  if(name === 'activity') loadActivity();
+  if(name === 'messages') loadUsersForSelect();
+}
+
+function toast(msg, ok=true){
+  const e = document.getElementById('toast');
+  e.textContent = msg;
+  e.style.background = ok ? '#1a1a1a' : '#c0392b';
+  e.classList.add('show');
+  setTimeout(() => e.classList.remove('show'), 3000);
+}
+
+function fmt(n){ return '₹' + (n||0).toLocaleString('en-IN'); }
+function fmtDate(d){ return d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+
+async function loadOverview(){
+  try{
+    const [stats, users] = await Promise.all([
+      adminApi('/admin/stats'),
+      adminApi('/admin/users')
+    ]);
+    document.getElementById('stat-users').textContent = stats.total_users;
+    document.getElementById('stat-expenses').textContent = stats.total_expenses;
+    document.getElementById('stat-amount').textContent = fmt(stats.total_amount);
+    document.getElementById('stat-month-exp').textContent = stats.month_expenses;
+    document.getElementById('stat-month-amt').textContent = fmt(stats.month_amount);
+
+    allUsers = users;
+    const tbody = users.length ? `<table>
+      <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Expenses</th><th>Total spent</th><th>Last activity</th></tr></thead>
+      <tbody>${users.map(u=>`<tr>
+        <td><strong>${u.name}</strong></td>
+        <td style="color:#555">${u.email}</td>
+        <td>${fmtDate(u.joined)}</td>
+        <td>${u.expense_count}</td>
+        <td style="font-weight:600;color:#5b6af0">${fmt(u.total_spent)}</td>
+        <td style="color:#888">${fmtDate(u.last_activity)}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty">No users yet.</div>';
+    document.getElementById('overview-users-body').innerHTML = tbody;
+  }catch(e){ toast('Failed to load stats: '+e.message, false); }
+}
+
+async function loadUsers(){
+  try{
+    const users = await adminApi('/admin/users');
+    allUsers = users;
+    renderUsers(users);
+    loadUsersForSelect();
+  }catch(e){ toast('Failed to load users: '+e.message, false); }
+}
+
+function renderUsers(users){
+  const body = document.getElementById('users-table-body');
+  if(!users.length){ body.innerHTML = '<div class="empty">No users found.</div>'; return; }
+  body.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Expenses</th><th>Total spent</th><th>Last active</th><th></th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:#555">${u.email}</td>
+      <td>${fmtDate(u.joined)}</td>
+      <td><span class="badge" style="background:#f0f0f8;color:#5b6af0;">${u.expense_count}</span></td>
+      <td style="font-weight:600;">${fmt(u.total_spent)}</td>
+      <td style="color:#888;font-size:12px;">${fmtDate(u.last_activity)}</td>
+      <td>
+        <button class="btn btn-sm" style="background:#E1F5EE;color:#085041;margin-right:4px;" onclick="quickMessage('${u.email}','${u.name}')">✉ Message</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.name}')">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function filterUsers(){
+  const q = document.getElementById('user-search').value.toLowerCase();
+  renderUsers(allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+}
+
+async function deleteUser(id, name){
+  if(!confirm(`Delete user "${name}" and all their data? This cannot be undone.`)) return;
+  try{
+    await adminApi(`/admin/users/${id}`, {method:'DELETE'});
+    toast(`User ${name} deleted`);
+    loadUsers();
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+async function loadActivity(){
+  try{
+    const data = await adminApi('/admin/recent-activity');
+    const COLORS = ['#5b6af0','#f06b5b','#5bbff0','#f0c05b','#5bf0a0','#c05bf0'];
+    let cc = {};
+    function catColor(c){ if(!cc[c]) cc[c]=COLORS[Object.keys(cc).length%COLORS.length]; return cc[c]; }
+    const body = document.getElementById('activity-table-body');
+    if(!data.length){ body.innerHTML = '<div class="empty">No recent activity.</div>'; return; }
+    body.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>User</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody>${data.map(e=>`<tr>
+        <td>${fmtDate(e.date)}</td>
+        <td><div style="font-weight:500">${e.user_name}</div><div style="font-size:11px;color:#888">${e.user_email}</div></td>
+        <td><span class="badge" style="background:${catColor(e.category)}22;color:${catColor(e.category)}">${e.category}</span></td>
+        <td style="color:#555">${e.description||'—'}</td>
+        <td style="font-weight:600">₹${e.amount.toLocaleString('en-IN')}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }catch(e){ toast('Failed to load activity: '+e.message, false); }
+}
+
+async function loadUsersForSelect(){
+  try{
+    if(!allUsers.length) allUsers = await adminApi('/admin/users');
+    const sel = document.getElementById('msg-target');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="all">📢 All users (' + allUsers.length + ')</option>';
+    allUsers.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.email;
+      o.textContent = `${u.name} (${u.email})`;
+      sel.appendChild(o);
+    });
+    if(cur) sel.value = cur;
+    updatePreview();
+  }catch(e){}
+}
+
+function updatePreview(){
+  const target = document.getElementById('msg-target').value;
+  const preview = document.getElementById('msg-preview');
+  if(target === 'all'){
+    preview.textContent = `Will send to all ${allUsers.length} users`;
+  } else {
+    const user = allUsers.find(u => u.email === target);
+    preview.textContent = user ? `Will send to: ${user.name}` : '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('msg-target');
+  if(sel) sel.addEventListener('change', updatePreview);
+});
+
+async function sendMessage(){
+  const target = document.getElementById('msg-target').value;
+  const subject = document.getElementById('msg-subject').value.trim();
+  const message = document.getElementById('msg-body').value.trim();
+  if(!subject){ toast('Please enter a subject', false); return; }
+  if(!message){ toast('Please write a message', false); return; }
+  try{
+    const d = await adminApi('/admin/send-message', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target, subject, message})
+    });
+    toast(d.message || 'Message sent!');
+    document.getElementById('msg-subject').value = '';
+    document.getElementById('msg-body').value = '';
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+function useTemplate(key){
+  const t = TEMPLATES[key];
+  if(!t) return;
+  document.getElementById('msg-subject').value = t.subject;
+  document.getElementById('msg-body').value = t.body;
+  showTab('messages');
+  document.querySelectorAll('.tab').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes('send'));
+  });
+}
+
+function quickMessage(email, name){
+  document.getElementById('msg-target').value = email;
+  updatePreview();
+  showTab('messages');
+}
+</script>
+</body>
+</html>
